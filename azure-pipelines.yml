@@ -79,3 +79,115 @@ stages:
     #         globExpressions: 'ROOT$(Build.BuildId).war'
     #       displayName: 'AWS Upload artifacts to AWS S3'
     #       continueOnError: true
+
+    # # - stage: BuildDockerImagePushToDockerHubAndAzureACR
+    # #   jobs:
+    # #   - job: BuildIMageAndPushToDockerHub
+    # #     timeoutInMinutes: 10
+    # #     steps:
+    # #     - checkout: none
+    # #     - script: ls -al && pwd
+    # #       displayName: 'List Files'
+    # #     - task: Docker@2
+    # #       inputs:
+    # #         containerRegistry: 'azureb17-dockerhub-connection'
+    # #         repository: 'sreeharshav/azureb17ado'
+    # #         command: 'buildAndPush'
+    # #         Dockerfile: '**/Dockerfile'
+    # #       displayName: 'Creating & Pushing Docker Image To Docker HUB'
+    # #       continueOnError: true
+    # #   - job: BuildIMageAndPushToAzureACR
+    # #     dependsOn: BuildIMageAndPushToDockerHub
+    # #     timeoutInMinutes: 10
+    # #     steps:
+    # #     - checkout: none
+    # #     - task: Bash@3
+    # #       inputs:
+    # #         targetType: 'inline'
+    # #         script: |
+    # #           docker login -u azureb17 -p $(acrpassword) azureb17.azurecr.io
+    # #           docker tag sreeharshav/azureb17ado:$(Build.BuildId) azureb17.azurecr.io/azureb17:$(Build.BuildId)
+    # #           docker push azureb17.azurecr.io/azureb17:$(Build.BuildId)
+    # #       displayName: 'Creating & Pushing Docker Image To Azure ACR'
+
+    # # - stage: DeployDockerImageToAzureACI
+    # #   jobs:
+    # #   - job: DeployAzureACI
+    # #     timeoutInMinutes: 10
+    # #     steps:
+    # #     - checkout: none
+    # #     - task: AzureCLI@2
+    # #       inputs:
+    # #         azureSubscription: 'azureb17-azure-connection'
+    # #         scriptType: 'bash'
+    # #         scriptLocation: 'inlineScript'
+    # #         inlineScript: 'az container create -g AZUREB17ADO --name b17azure$(Build.BuildId) --image azureb17.azurecr.io/azureb17:$(Build.BuildId) --cpu 1 --memory 1 --ports 8080 --dns-name-label b17azure$(Build.BuildId) --registry-username azureb17 --registry-password $(acrpassword) --location eastus'
+    # #       displayName: 'Deploy Docker Image to Azure Container Instances'
+    # #       continueOnError: true
+
+    # - stage: 'DeployingToStagingEnvironment'
+    #   displayName: 'Deploying To Staging Environment'
+      
+    #   jobs:
+    #   - deployment: "DeployWARtoStagingServer"
+    #     environment: 
+    #       name: STAGING
+    #       resourceType: VirtualMachine
+    #     strategy:
+    #       runOnce:
+    #         deploy :
+    #           steps:
+    #            - script: hostname && sudo rm -rf /var/lib/tomcat8/webapps/mywebapp.war
+    #              displayName: 'Deleting Existing WAR file'
+
+    #            - script: cd /home/ubuntu/azagent/_work/1/ && ls -al && rm -rf ROOT.war
+    #              displayName: 'List Artifact Files'
+
+    #            - script: cd /home/ubuntu/azagent/_work/1/ && sudo mv ROOT$(Build.BuildId).war ROOT.war && ls -al ROOT.war
+    #              displayName: 'Rename Artifact Files'
+
+    #            - script: cd /home/ubuntu/azagent/_work/1/ && sudo cp ROOT.war/ROOT$(Build.BuildId).war /var/lib/tomcat8/webapps/mywebapp.war
+    #              displayName: 'Copy Artifact Files to webapps Folder'
+
+    #            - script: sudo rm -rf ROOT*.war
+    #              displayName: 'Delete Artifact Files'
+
+    # - stage: 'DeployingToProductionEnvironment'
+    #   displayName: 'Deploying To Production Environment'
+      
+    #   jobs:
+    #   - deployment: "DeployWARtoStagingServer"
+    #     environment: 
+    #       name: PRODUCTION
+    #       resourceType: VirtualMachine
+    #     strategy:
+    #       runOnce:
+    #         deploy :
+    #           steps:
+    #            - script: hostname && sudo rm -rf /var/lib/tomcat8/webapps/mywebapp.war
+    #              displayName: 'Deleting Existing WAR file'
+
+    #            - script: cd /home/ubuntu/azagent/_work/1/ && ls -al && rm -rf ROOT.war
+    #              displayName: 'List Artifact Files'
+
+    #            - script: cd /home/ubuntu/azagent/_work/1/ && sudo mv ROOT$(Build.BuildId).war ROOT.war && ls -al ROOT.war
+    #              displayName: 'Rename Artifact Files'
+
+    #            - script: cd /home/ubuntu/azagent/_work/1/ && sudo cp ROOT.war/ROOT$(Build.BuildId).war /var/lib/tomcat8/webapps/mywebapp.war
+    #              displayName: 'Copy Artifact Files to webapps Folder'
+
+    #            - script: sudo rm -rf ROOT*.war
+    #              displayName: 'Delete Artifact Files'
+
+
+    - stage: DeleteTheRepo
+      jobs:
+      - job: DeleteTheRepoCntent
+        timeoutInMinutes: 10
+        steps:
+         - checkout: none
+         - script: cd /home/adminsree/myagent/_work/1/s && sudo rm -rf src
+           displayName: 'Remove Files'
+
+         - script: cd /tmp/artifacts && sudo rm -f *.war
+           displayName: 'Remove Files From tmp Folder'  
