@@ -27,7 +27,7 @@ stages:
         - script: ls -al && mv ROOT.war ROOT$(Build.BuildId).war && ls -al
           displayName: 'List Files & Rename ROOT.war'
      
-        - script: cp ROOT$(Build.BuildId).war /tmp/artifacts && ls -al /tmp/artifacts
+        - script: cp ROOT$(Build.BuildId).war /artifacts && ls -al /artifacts
           displayName: 'Copy WAR to tmp folder'
 
         - task: CopyFiles@2
@@ -49,7 +49,7 @@ stages:
              Contents: 'ROOT$(Build.BuildId).war'
              #Artifact staging directory is purged/cleaned after every build and due to that
              #Artifact is not availible for next stage.
-             TargetFolder: '/tmp/artifacts'
+             TargetFolder: '/artifacts'
              OverWrite: true
           continueOnError: true
 
