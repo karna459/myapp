@@ -1,0 +1,81 @@
+# Starter pipeline
+# Start with a minimal pipeline that you can customize to build and deploy your code.
+# Add steps that build, run tests, deploy, and more:
+# https://aka.ms/yaml
+
+trigger:
+- master
+
+pool:
+  vmImage: ubuntu-latest
+
+stages:
+    - stage: BuildingJavaCode
+      jobs:
+      - job: BuildingJavaCodeJob
+        timeoutInMinutes: 10
+        steps:
+        - script: echo $(Build.BuildId)
+          displayName: 'Display The Build-ID'
+
+        - script: ls -al && pwd
+          displayName: 'List Files & Current Working Directory'
+        
+        - script: ls -al && chmod 700 build.sh && sudo bash ./build.sh && ls -al
+          displayName: 'Run the build script'
+        
+        - script: ls -al && mv ROOT.war ROOT$(Build.BuildId).war && ls -al
+          displayName: 'List Files & Rename ROOT.war'
+     
+        - script: cp ROOT$(Build.BuildId).war /tmp/artifacts && ls -al /tmp/artifacts
+          displayName: 'Copy WAR to tmp folder'
+
+        - task: CopyFiles@2
+          inputs:
+            Contents: 'ROOT$(Build.BuildId).war'
+            TargetFolder: '$(Build.ArtifactStagingDirectory)'
+            OverWrite: true
+          displayName: 'Copying WAR file to ArtifactStagingDirector'
+
+        - task: PublishBuildArtifacts@1
+          inputs:
+            PathtoPublish: '$(Build.ArtifactStagingDirectory)'
+            ArtifactName: 'ROOT$(Build.BuildId).war'
+            publishLocation: 'Container'
+          displayName: 'Publishing WAR Artifact.'
+
+        - task: CopyFiles@2
+          inputs:
+             Contents: 'ROOT$(Build.BuildId).war'
+             #Artifact staging directory is purged/cleaned after every build and due to that
+             #Artifact is not availible for next stage.
+             TargetFolder: '/tmp/artifacts'
+             OverWrite: true
+          continueOnError: true
+
+    # - stage: CopyingArtifactsToAzureAndAws
+    #   jobs:
+    #   - job: CopyFilesToAzureBlob
+    #     timeoutInMinutes: 10
+    #     steps:
+    #     - checkout: none
+
+    #     - task: AzureCLI@2
+    #       inputs:
+    #         azureSubscription: 'azureb17-azure-connection'
+    #         scriptType: 'bash'
+    #         scriptLocation: 'inlineScript'
+    #         inlineScript: |
+    #           az storage blob upload-batch --account-name azureb17adoartifacts  --account-key $(STORAGE_ACCOUNT_KEY) --destination artifacts --source /tmp/artifacts/
+    #       displayName: 'Azure Upload artifacts to Azure Blob'
+    #       continueOnError: true
+
+    #     - task: S3Upload@1
+    #       inputs:
+    #         awsCredentials: 'azureb17-aws-connection'
+    #         regionName: 'us-east-1'
+    #         bucketName: 'azureb17adoartifacts'
+    #         sourceFolder: '/tmp/artifacts/'
+    #         globExpressions: 'ROOT$(Build.BuildId).war'
+    #       displayName: 'AWS Upload artifacts to AWS S3'
+    #       continueOnError: true
