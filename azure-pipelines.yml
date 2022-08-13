@@ -49,7 +49,7 @@ stages:
              Contents: 'ROOT$(Build.BuildId).war'
              #Artifact staging directory is purged/cleaned after every build and due to that
              #Artifact is not availible for next stage.
-             TargetFolder: '/artifacts'
+             TargetFolder: '/tmp/artifacts'
              OverWrite: true
           continueOnError: true
 
